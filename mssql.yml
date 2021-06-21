@@ -58,6 +58,7 @@ spec:
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_server_properties")
                   |> filter(fn: (r) => r["_field"] == "uptime")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
                   |> last()
                   |> map(fn: (r) => ({r with _value: r._value / 1440 }))
         width: 2
@@ -74,6 +75,7 @@ spec:
                 from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["counter"] == "Target Server Memory (KB)")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
                   |> last()
                   |> map(fn: (r) => ({r with _value: r._value / 1024.00}))
         suffix: ' GB'
@@ -107,6 +109,7 @@ spec:
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_field"] == "value")
                   |> filter(fn: (r) => r["counter"] == "SQL Compilations/sec" or r["counter"] == "SQL Re-Compilations/sec" or r["counter"] == "User Connections" or r["counter"] == "Batch Requests/sec" or r["counter"] == "Logouts/sec" or r["counter"] == "Logins/sec" or r["counter"] == "Processes blocked")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
                   |> derivative(unit: v.windowPeriod, nonNegative: false)
                   |> yield(name: "derivative")
         width: 6
@@ -141,6 +144,7 @@ spec:
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_field"] == "value")
                   |> filter(fn: (r) => r["counter"] == "Full Scans/sec" or r["counter"] == "Index Searches/sec" or r["counter"] == "Page Splits/sec" or r["counter"] == "Page lookups/sec" or r["counter"] == "Page reads/sec" or r["counter"] == "Page writes/sec" or r["counter"] == "Readahead pages/sec" or r["counter"] == "Lazy writes/sec" or r["counter"] == "Checkpoint pages/sec")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
                   |> derivative(unit: v.windowPeriod, nonNegative: false)
                   |> yield(name: "derivative")
         width: 6
@@ -175,6 +179,7 @@ spec:
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == v.mssqlType)
                   |> filter(fn: (r) => r["_field"] == "wait_time_ms")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
                   |> derivative(unit: v.windowPeriod, nonNegative: false)
                   |> yield(name: "derivative")
         width: 6
@@ -208,6 +213,7 @@ spec:
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_performance")
                   |> filter(fn: (r) => r["counter"] == "Log File(s) Size (KB)")
                   |> filter(fn: (r) => r["instance"] == "master" or r["instance"] == "model" or r["instance"] == "msdb" or r["instance"] == "mssqlsystemresource" or r["instance"] == "tempdb")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
         width: 6
         xCol: _time
         yCol: _value
@@ -240,6 +246,7 @@ spec:
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_database_io")
                   |> filter(fn: (r) => r["_field"] == "read_bytes")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
                   |> derivative(unit: v.windowPeriod, nonNegative: false)
                   |> yield(name: "derivative")
 
@@ -247,6 +254,7 @@ spec:
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_database_io")
                   |> filter(fn: (r) => r["_field"] == "read_bytes")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
                   |> aggregateWindow(every: v.windowPeriod, fn: last)
                   |> yield(name: "last")
         width: 6
@@ -281,6 +289,7 @@ spec:
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_database_io")
                   |> filter(fn: (r) => r["_field"] == "read_latency_ms" or r["_field"] == "rg_read_stall_ms")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
                   |> aggregateWindow(every: v.windowPeriod, fn: last)
                   |> yield(name: "last")
 
@@ -288,6 +297,7 @@ spec:
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_database_io")
                   |> filter(fn: (r) => r["_field"] == "read_latency_ms" or r["_field"] == "rg_read_stall_ms")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
                   |> derivative(unit: v.windowPeriod, nonNegative: false)
                   |> yield(name: "derivative")
         width: 6
@@ -316,6 +326,7 @@ spec:
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_field"] == "value")
                   |> filter(fn: (r) => r["counter"] == "CPU usage %")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
         width: 2
         xCol: _time
         xPos: 2
@@ -333,6 +344,7 @@ spec:
                 from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["counter"] == "Used memory (KB)")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
                   |> last()
                   |> map(fn: (r) => ({r with _value: r._value / 100024.00}))
         suffix: ' GB'
@@ -370,6 +382,7 @@ spec:
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "win_cpu")
                   |> filter(fn: (r) => r["_field"] == "Percent_Idle_Time")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
                   |> aggregateWindow(every: v.windowPeriod, fn: last)
                   |> yield(name: "last")
         width: 2
@@ -391,6 +404,7 @@ spec:
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_performance")
                   |> filter(fn: (r) => r["_field"] == "value")
                   |> filter(fn: (r) => r["counter"] == "User Connections")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
         width: 2
         xPos: 4
         yPos: 2
@@ -408,6 +422,7 @@ spec:
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_server_properties")
                   |> filter(fn: (r) => r["_field"] == "db_online")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
         width: 1
         xPos: 6
       - axes:
@@ -438,6 +453,7 @@ spec:
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "win_disk")
                   |> filter(fn: (r) => r["_field"] == "Percent_Disk_Write_Time")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
         width: 3
         xCol: _time
         xPos: 6
@@ -471,6 +487,7 @@ spec:
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_field"] == "value")
                   |> filter(fn: (r) => r["counter"] == "Transactions/sec" or r["counter"] == "Write Transactions/sec" or r["counter"] == "Log Flush Wait Time" or r["counter"] == "Log Flushes/sec" or r["counter"] == "Lock Timeouts/sec" or r["counter"] == "Number of Deadlocks/sec" or r["counter"] == "Lock Waits/sec" or r["counter"] == "Latch Waits/sec")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
                   |> derivative(unit: v.windowPeriod, nonNegative: false)
                   |> yield(name: "derivative")
         width: 6
@@ -507,7 +524,7 @@ spec:
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_memory_clerks")
                   |> filter(fn: (r) => r["_field"] == "size_kb")
                   |> filter(fn: (r) => r["database_name"] == "master")
-                //  |> filter(fn: (r) => r["host"] == "WIN-8EI77QDB3SL")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
                   |> derivative(unit: v.windowPeriod, nonNegative: true)
                   |> yield(name: "nonnegative derivative")
         width: 6
@@ -541,6 +558,7 @@ spec:
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == v.mssqlType)
                   |> filter(fn: (r) => r["_field"] == "waiting_tasks_count")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
                   |> derivative(unit: v.windowPeriod, nonNegative: false)
                   |> yield(name: "derivative")
         width: 6
@@ -577,6 +595,7 @@ spec:
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_performance")
                   |> filter(fn: (r) => r["counter"] == "Data File(s) Size (KB)")
                   |> filter(fn: (r) => r["instance"] == "master" or r["instance"] == "model" or r["instance"] == "msdb" or r["instance"] == "mssqlsystemresource" or r["instance"] == "tempdb")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
                   |> aggregateWindow(every: v.windowPeriod, fn: last)
                   |> yield(name: "last")
         width: 6
@@ -612,6 +631,7 @@ spec:
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_database_io")
                   |> filter(fn: (r) => r["_field"] == "write_bytes" or r["_field"] == "writes")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
                   |> derivative(unit: v.windowPeriod, nonNegative: false)
                   |> yield(name: "derivative")
         width: 6
@@ -647,6 +667,7 @@ spec:
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_database_io")
                   |> filter(fn: (r) => r["_field"] == "write_latency_ms" or r["_field"] == "rg_write_stall_ms")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
                   |> derivative(unit: v.windowPeriod, nonNegative: false)
                   |> yield(name: "derivative")
         width: 6
@@ -668,6 +689,7 @@ spec:
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_server_properties")
                   |> filter(fn: (r) => r["_field"] == "db_offline")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
         width: 1
         xPos: 7
       - colors:
@@ -684,6 +706,7 @@ spec:
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_server_properties")
                   |> filter(fn: (r) => r["_field"] == "db_restoring")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
         width: 1
         xPos: 8
       - colors:
@@ -700,6 +723,7 @@ spec:
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_server_properties")
                   |> filter(fn: (r) => r["_field"] == "db_recovering")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
         width: 1
         xPos: 9
       - axes:
@@ -730,6 +754,7 @@ spec:
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "win_disk")
                   |> filter(fn: (r) => r["_field"] == "Percent_Disk_Read_Time")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
         width: 3
         xCol: _time
         xPos: 9
@@ -749,6 +774,7 @@ spec:
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_server_properties")
                   |> filter(fn: (r) => r["_field"] == "db_recoveryPending")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
         width: 1
         xPos: 10
       - colors:
@@ -765,6 +791,7 @@ spec:
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_server_properties")
                   |> filter(fn: (r) => r["_field"] == "db_suspect")
+                  |> filter(fn: (r) => r.sql_instance == v.instance)
         width: 1
         xPos: 11
     name: MSSQL
