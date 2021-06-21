@@ -21,21 +21,6 @@ spec:
       - sqlserver_waitstats
 ---
 apiVersion: influxdata.com/v2alpha1
-kind: Variable
-metadata:
-    name: sql-instance
-spec:
-    name: sql-instance
-    associations:
-      - kind: Label
-        name: sad-carson-616001
-    language: flux
-    query: |-
-        import "influxdata/influxdb/v1"
-        v1.measurementTagValues(bucket: v.bucket, measurement: "sql_servercpu", tag: "sql_instance")
-    type: query
----
-apiVersion: influxdata.com/v2alpha1
 kind: Dashboard
 metadata:
     name: elastic-buck-216001
