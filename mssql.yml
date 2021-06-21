@@ -7,31 +7,18 @@ spec:
     name: mssql
 ---
 apiVersion: influxdata.com/v2alpha1
-kind: Bucket
-metadata:
-    name: telegraf
-spec:
-    name: telegraf
-    retentionRules:
-      - everySeconds: 604800
-        type: expire
----
-apiVersion: influxdata.com/v2alpha1
 kind: Variable
 metadata:
-    name: bucket
+    name: modest-payne-616005
 spec:
-    name: bucket
     associations:
       - kind: Label
-        name: mssql
-    language: flux
-    query: |-
-        buckets()
-          |> filter(fn: (r) => r.name !~ /^_/)
-          |> rename(columns: {name: "_value"})
-          |> keep(columns: ["_value"])
-    type: query
+        name: sad-carson-616001
+    name: mssqlType
+    type: constant
+    values:
+      - sqlserver_azuredb_waitstats
+      - sqlserver_waitstats
 ---
 apiVersion: influxdata.com/v2alpha1
 kind: Variable
@@ -47,20 +34,6 @@ spec:
         import "influxdata/influxdb/v1"
         v1.measurementTagValues(bucket: v.bucket, measurement: "sql_servercpu", tag: "sql_instance")
     type: query
----
-apiVersion: influxdata.com/v2alpha1
-kind: Variable
-metadata:
-    name: modest-payne-616005
-spec:
-    associations:
-      - kind: Label
-        name: sad-carson-616001
-    name: mssqlType
-    type: constant
-    values:
-      - sqlserver_azuredb_waitstats
-      - sqlserver_waitstats
 ---
 apiVersion: influxdata.com/v2alpha1
 kind: Dashboard
@@ -81,7 +54,7 @@ spec:
         name: Uptime (days)
         queries:
           - query: |-
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_server_properties")
                   |> filter(fn: (r) => r["_field"] == "uptime")
@@ -98,7 +71,7 @@ spec:
         name: Target Memory
         queries:
           - query: |-
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["counter"] == "Target Server Memory (KB)")
                   |> last()
@@ -130,7 +103,7 @@ spec:
         position: overlaid
         queries:
           - query: |-
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_field"] == "value")
                   |> filter(fn: (r) => r["counter"] == "SQL Compilations/sec" or r["counter"] == "SQL Re-Compilations/sec" or r["counter"] == "User Connections" or r["counter"] == "Batch Requests/sec" or r["counter"] == "Logouts/sec" or r["counter"] == "Logins/sec" or r["counter"] == "Processes blocked")
@@ -164,7 +137,7 @@ spec:
         position: overlaid
         queries:
           - query: |-
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_field"] == "value")
                   |> filter(fn: (r) => r["counter"] == "Full Scans/sec" or r["counter"] == "Index Searches/sec" or r["counter"] == "Page Splits/sec" or r["counter"] == "Page lookups/sec" or r["counter"] == "Page reads/sec" or r["counter"] == "Page writes/sec" or r["counter"] == "Readahead pages/sec" or r["counter"] == "Lazy writes/sec" or r["counter"] == "Checkpoint pages/sec")
@@ -198,7 +171,7 @@ spec:
         position: overlaid
         queries:
           - query: |-
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == v.mssqlType)
                   |> filter(fn: (r) => r["_field"] == "wait_time_ms")
@@ -230,7 +203,7 @@ spec:
         position: overlaid
         queries:
           - query: |-
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_performance")
                   |> filter(fn: (r) => r["counter"] == "Log File(s) Size (KB)")
@@ -263,14 +236,14 @@ spec:
         position: overlaid
         queries:
           - query: |-
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_database_io")
                   |> filter(fn: (r) => r["_field"] == "read_bytes")
                   |> derivative(unit: v.windowPeriod, nonNegative: false)
                   |> yield(name: "derivative")
 
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_database_io")
                   |> filter(fn: (r) => r["_field"] == "read_bytes")
@@ -304,14 +277,14 @@ spec:
         position: overlaid
         queries:
           - query: |-
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_database_io")
                   |> filter(fn: (r) => r["_field"] == "read_latency_ms" or r["_field"] == "rg_read_stall_ms")
                   |> aggregateWindow(every: v.windowPeriod, fn: last)
                   |> yield(name: "last")
 
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_database_io")
                   |> filter(fn: (r) => r["_field"] == "read_latency_ms" or r["_field"] == "rg_read_stall_ms")
@@ -339,7 +312,7 @@ spec:
         position: overlaid
         queries:
           - query: |-
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_field"] == "value")
                   |> filter(fn: (r) => r["counter"] == "CPU usage %")
@@ -357,7 +330,7 @@ spec:
         name: Used Memory
         queries:
           - query: |-
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["counter"] == "Used memory (KB)")
                   |> last()
@@ -393,7 +366,7 @@ spec:
         position: overlaid
         queries:
           - query: |-
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "win_cpu")
                   |> filter(fn: (r) => r["_field"] == "Percent_Idle_Time")
@@ -413,7 +386,7 @@ spec:
         name: User Connections
         queries:
           - query: |-
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_performance")
                   |> filter(fn: (r) => r["_field"] == "value")
@@ -431,7 +404,7 @@ spec:
         name: Online
         queries:
           - query: |-
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_server_properties")
                   |> filter(fn: (r) => r["_field"] == "db_online")
@@ -461,7 +434,7 @@ spec:
         position: overlaid
         queries:
           - query: |-
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "win_disk")
                   |> filter(fn: (r) => r["_field"] == "Percent_Disk_Write_Time")
@@ -494,7 +467,7 @@ spec:
         position: overlaid
         queries:
           - query: |-
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_field"] == "value")
                   |> filter(fn: (r) => r["counter"] == "Transactions/sec" or r["counter"] == "Write Transactions/sec" or r["counter"] == "Log Flush Wait Time" or r["counter"] == "Log Flushes/sec" or r["counter"] == "Lock Timeouts/sec" or r["counter"] == "Number of Deadlocks/sec" or r["counter"] == "Lock Waits/sec" or r["counter"] == "Latch Waits/sec")
@@ -529,7 +502,7 @@ spec:
         position: overlaid
         queries:
           - query: |-
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_memory_clerks")
                   |> filter(fn: (r) => r["_field"] == "size_kb")
@@ -564,7 +537,7 @@ spec:
         position: overlaid
         queries:
           - query: |-
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == v.mssqlType)
                   |> filter(fn: (r) => r["_field"] == "waiting_tasks_count")
@@ -599,7 +572,7 @@ spec:
         position: overlaid
         queries:
           - query: |-
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_performance")
                   |> filter(fn: (r) => r["counter"] == "Data File(s) Size (KB)")
@@ -635,7 +608,7 @@ spec:
         position: overlaid
         queries:
           - query: |-
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_database_io")
                   |> filter(fn: (r) => r["_field"] == "write_bytes" or r["_field"] == "writes")
@@ -670,7 +643,7 @@ spec:
         position: overlaid
         queries:
           - query: |-
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_database_io")
                   |> filter(fn: (r) => r["_field"] == "write_latency_ms" or r["_field"] == "rg_write_stall_ms")
@@ -691,7 +664,7 @@ spec:
         name: Offline
         queries:
           - query: |-
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_server_properties")
                   |> filter(fn: (r) => r["_field"] == "db_offline")
@@ -707,7 +680,7 @@ spec:
         name: Restoring
         queries:
           - query: |-
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_server_properties")
                   |> filter(fn: (r) => r["_field"] == "db_restoring")
@@ -723,7 +696,7 @@ spec:
         name: Recovering
         queries:
           - query: |-
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_server_properties")
                   |> filter(fn: (r) => r["_field"] == "db_recovering")
@@ -753,7 +726,7 @@ spec:
         position: overlaid
         queries:
           - query: |-
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "win_disk")
                   |> filter(fn: (r) => r["_field"] == "Percent_Disk_Read_Time")
@@ -772,7 +745,7 @@ spec:
         name: Pending
         queries:
           - query: |-
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_server_properties")
                   |> filter(fn: (r) => r["_field"] == "db_recoveryPending")
@@ -788,7 +761,7 @@ spec:
         name: Suspect
         queries:
           - query: |-
-                from(bucket: "mssql")
+                from(bucket: "telegraf")
                   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
                   |> filter(fn: (r) => r["_measurement"] == "sqlserver_server_properties")
                   |> filter(fn: (r) => r["_field"] == "db_suspect")
