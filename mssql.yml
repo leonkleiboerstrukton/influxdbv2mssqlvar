@@ -28,7 +28,7 @@ spec:
     name: sql-instance
     associations:
       - kind: Label
-        name: mssql
+        name: sad-carson-616001
     language: flux
     query: |-
         import "influxdata/influxdb/v1"
